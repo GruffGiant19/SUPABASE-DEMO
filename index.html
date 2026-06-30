@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supabase Auth Demo</title>
+  <meta name="description" content="Supabase authentication demo — signup, login, and a personalized confetti welcome screen." />
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Supabase JS Client (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Shared config -->
+  <script src="supabase-config.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            page:    '#FAFAF9',
+            surface: '#E7E5E4',
+            heading: '#27272A',
+            accent:  '#F97316',
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body { background-color: #FAFAF9; font-family: 'Inter', system-ui, sans-serif; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { animation: spin 0.8s linear infinite; }
+  </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center bg-page">
+  <!-- Spinner shown while session resolves -->
+  <svg class="spinner w-10 h-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="#F97316" stroke-width="4"></circle>
+    <path class="opacity-75" fill="#F97316" d="M4 12a8 8 0 018-8v8H4z"></path>
+  </svg>
+
+  <script>
+    (async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      window.location.replace(session ? 'welcome.html' : 'signup.html');
+    })();
+  </script>
+</body>
+</html>

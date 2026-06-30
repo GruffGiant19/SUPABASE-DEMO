@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — Supabase Auth Demo</title>
+  <meta name="description" content="Create your account to test your Supabase connection." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            page:    '#FAFAF9',
+            surface: '#E7E5E4',
+            heading: '#27272A',
+            accent:  '#F97316',
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background-color: #FAFAF9; font-family: 'Inter', system-ui, sans-serif; }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #F97316;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { animation: spin 0.8s linear infinite; }
+
+    .btn-primary:active  { transform: translateY(1px); }
+    .btn-secondary:active { transform: translateY(1px); }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-6px); }
+      40%       { transform: translateX(6px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+    .error-shake { animation: shake 0.4s ease; }
+  </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-6 bg-page">
+  <div class="w-full max-w-md">
+
+    <!-- Logo / brand mark -->
+    <div class="flex items-center gap-2 mb-8">
+      <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/>
+        </svg>
+      </div>
+      <span class="text-heading font-semibold text-lg tracking-tight">Supabase Demo</span>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white border border-surface rounded-2xl p-8 shadow-sm">
+      <h1 class="text-2xl font-bold text-heading mb-1">Create your account</h1>
+      <p class="text-sm text-gray-500 mb-6">Test your Supabase connection in seconds.</p>
+
+      <form id="signup-form" novalidate>
+
+        <!-- Name -->
+        <div class="mb-4">
+          <label for="name" class="block text-sm font-medium text-heading mb-1.5">Full name</label>
+          <input
+            id="name"
+            type="text"
+            placeholder="Jane Smith"
+            autocomplete="name"
+            class="input-field w-full px-3.5 py-2.5 rounded-xl border border-surface bg-white text-heading placeholder-gray-400 text-sm transition-colors"
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium text-heading mb-1.5">Email address</label>
+          <input
+            id="email"
+            type="email"
+            placeholder="jane@example.com"
+            autocomplete="email"
+            class="input-field w-full px-3.5 py-2.5 rounded-xl border border-surface bg-white text-heading placeholder-gray-400 text-sm transition-colors"
+          />
+        </div>
+
+        <!-- Password -->
+        <div class="mb-6">
+          <label for="password" class="block text-sm font-medium text-heading mb-1.5">Password</label>
+          <input
+            id="password"
+            type="password"
+            placeholder="At least 6 characters"
+            autocomplete="new-password"
+            class="input-field w-full px-3.5 py-2.5 rounded-xl border border-surface bg-white text-heading placeholder-gray-400 text-sm transition-colors"
+          />
+        </div>
+
+        <!-- Error area -->
+        <div id="error-box" class="hidden mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+
+        <!-- Info area (email confirmation hint) -->
+        <div id="info-box" class="hidden mb-4 px-4 py-3 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 text-sm"></div>
+
+        <!-- Submit -->
+        <button
+          id="submit-btn"
+          type="submit"
+          class="btn-primary w-full py-2.5 rounded-xl bg-accent text-white font-semibold text-sm transition-all hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          Create account
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-3 my-6">
+        <div class="flex-1 h-px bg-surface"></div>
+        <span class="text-xs text-gray-400">already have an account?</span>
+        <div class="flex-1 h-px bg-surface"></div>
+      </div>
+
+      <!-- Switch to login -->
+      <a
+        href="login.html"
+        class="btn-secondary block text-center w-full py-2.5 rounded-xl border border-surface text-heading font-medium text-sm transition-colors hover:bg-stone-50"
+      >
+        Sign in instead
+      </a>
+    </div>
+
+    <p class="text-center text-xs text-gray-400 mt-6">
+      A minimal Supabase auth learning project.
+    </p>
+  </div>
+
+  <script>
+    // Redirect if already logged in
+    (async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) window.location.replace('welcome.html');
+    })();
+
+    /* ── Helpers ── */
+    function showError(msg) {
+      const el = document.getElementById('error-box');
+      el.textContent = msg;
+      el.classList.remove('hidden', 'error-shake');
+      void el.offsetWidth;
+      el.classList.add('error-shake');
+      document.getElementById('info-box').classList.add('hidden');
+    }
+
+    function showInfo(msg) {
+      const el = document.getElementById('info-box');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      document.getElementById('error-box').classList.add('hidden');
+    }
+
+    function clearMessages() {
+      document.getElementById('error-box').classList.add('hidden');
+      document.getElementById('info-box').classList.add('hidden');
+    }
+
+    function setLoading(loading) {
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? `<svg class="spinner inline w-4 h-4 mr-2 -ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>Working…`
+        : 'Create account';
+    }
+
+    /* ── Sign up ── */
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const name     = document.getElementById('name').value.trim();
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!name)     { showError('Please enter your name.'); return; }
+      if (!email)    { showError('Please enter your email address.'); return; }
+      if (!password) { showError('Please enter a password.'); return; }
+
+      setLoading(true);
+
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password,
+        options: { data: { name } },
+      });
+
+      setLoading(false);
+
+      if (error) {
+        showError(error.message);
+        return;
+      }
+
+      if (data.session) {
+        // Email confirmation is disabled — go straight to welcome
+        window.location.replace('welcome.html');
+      } else {
+        // Email confirmation is required
+        showInfo('Almost there! Check your email and click the confirmation link, then sign in below.');
+        setTimeout(() => window.location.href = 'login.html', 4000);
+      }
+    });
+  </script>
+</body>
+</html>
